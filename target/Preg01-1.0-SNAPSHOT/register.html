@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Registrar Estudiante</title>
+    <link href="vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
+    <link href="https://fonts.googleapis.com/css?family=Nunito:200,300,400,700" rel="stylesheet">
+    <link href="css/sb-admin-2.min.css" rel="stylesheet">
+</head>
+
+<body class="bg-gradient-primary">
+
+    <div class="container">
+
+        <div class="card o-hidden border-0 shadow-lg my-5">
+            <div class="card-body p-0">
+                <div class="row">
+                    <div class="col-lg-5 d-none d-lg-block bg-register-image"></div>
+                    <div class="col-lg-7">
+                        <div class="p-5">
+                            <div class="text-center">
+                                <h1 class="h4 text-gray-900 mb-4">Registrar Estudiante</h1>
+                            </div>
+                            <form id="matriculadoForm" class="user">
+                                <!-- Campos de formulario -->
+                                <div class="form-group">
+                                    <input type="number" name="codiEstdWeb" class="form-control form-control-user"
+                                        placeholder="Código Estudiante (ID)">
+                                </div>
+                                <div class="form-group">
+                                    <input type="text" name="ndniEstdWeb" class="form-control form-control-user"
+                                        placeholder="DNI" required>
+                                </div>
+                                <div class="form-group">
+                                    <input type="text" name="appaEstdWeb" class="form-control form-control-user"
+                                        placeholder="Apellido Paterno" required>
+                                </div>
+                                <div class="form-group">
+                                    <input type="text" name="apmaEstdWeb" class="form-control form-control-user"
+                                        placeholder="Apellido Materno" required>
+                                </div>
+                                <div class="form-group">
+                                    <input type="text" name="nombEstdWeb" class="form-control form-control-user"
+                                        placeholder="Nombres" required>
+                                </div>
+                                <div class="form-group">
+                                    <input type="date" name="fechNaciEstdWeb" class="form-control form-control-user"
+                                        required>
+                                </div>
+                                <div class="form-group">
+                                    <input type="text" name="logiEstd" class="form-control form-control-user"
+                                        placeholder="Usuario" required>
+                                </div>
+                                <div class="form-group">
+                                    <input type="password" name="passEstd" class="form-control form-control-user"
+                                        placeholder="Contraseña" required>
+                                </div>
+
+                                <button type="submit" class="btn btn-primary btn-user btn-block">
+                                    Registrar
+                                </button>
+                            </form>
+                            <hr>
+                            <div class="text-center">
+                                <button id="mostrarEstudiantes" class="btn btn-secondary btn-user btn-block">Mostrar
+                                    Estudiantes Registrados</button>
+                            </div>
+
+                            <!-- Contenedor donde se mostrarán los estudiantes -->
+                            <div class="mt-4" id="listaEstudiantes"></div>
+
+                            <div class="text-center mt-4">
+                                <a class="small" href="login.html">¿Ya tienes una cuenta? Inicia sesión</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        document.getElementById("matriculadoForm").addEventListener("submit", function (e) {
+            e.preventDefault();
+
+            const formData = new FormData(this);
+            formData.append("accion", "agregar");
+
+            fetch("matriculadosServlet", {
+                method: "POST",
+                body: formData
+            })
+                .then(response => {
+                    if (response.redirected) {
+                        window.location.href = response.url;
+                    } else {
+                        alert("Matriculado registrado exitosamente");
+                        this.reset();
+                    }
+                })
+                .catch(error => {
+                    console.error("Error al registrar:", error);
+                    alert("Error al registrar");
+                });
+        });
+
+        document.getElementById("mostrarEstudiantes").addEventListener("click", function () {
+            fetch("matriculadosServlet?accion=listar")
+                .then(response => response.json())
+                .then(data => {
+                    const container = document.getElementById("listaEstudiantes");
+                    container.innerHTML = "";
+
+                    if (data.length === 0) {
+                        container.innerHTML = "<p class='text-center text-white'>No hay estudiantes registrados.</p>";
+                        return;
+                    }
+
+                    const table = document.createElement("table");
+                    table.className = "table table-bordered table-striped bg-white";
+
+                    const thead = document.createElement("thead");
+                    thead.innerHTML = `
+                        <tr>
+                            <th>ID</th>
+                            <th>DNI</th>
+                            <th>Apellido Paterno</th>
+                            <th>Apellido Materno</th>
+                            <th>Nombres</th>
+                            <th>Usuario</th>
+                        </tr>
+                    `;
+                    table.appendChild(thead);
+
+                    const tbody = document.createElement("tbody");
+                    data.forEach(estudiante => {
+                        const tr = document.createElement("tr");
+                        tr.innerHTML = `
+                            <td>${estudiante.codiEstdWeb}</td>
+                            <td>${estudiante.ndniEstdWeb}</td>
+                            <td>${estudiante.appaEstdWeb}</td>
+                            <td>${estudiante.apmaEstdWeb}</td>
+                            <td>${estudiante.nombEstdWeb}</td>
+                            <td>${estudiante.logiEstd}</td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+                    table.appendChild(tbody);
+                    container.appendChild(table);
+                })
+                .catch(error => {
+                    console.error("Error al cargar estudiantes:", error);
+                    alert("Error al mostrar estudiantes");
+                });
+        });
+    </script>
+
+</body>
+
+</html>
